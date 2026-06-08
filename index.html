@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMO AI Transformation Index Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar" aria-label="Survey header">
+        <div>
+          <p class="eyebrow">CMO Huddles x Benchmarkit</p>
+          <h1>CMO AI Transformation Index</h1>
+        </div>
+        <div class="score-pill" id="progressPill">0% complete</div>
+      </section>
+
+      <section class="intro" id="intro">
+        <div class="intro-copy">
+          <h2>Prototype Questionnaire</h2>
+          <p>
+            This local prototype includes the original profile questions, the
+            22 benchmark questions, optional qualitative evidence, and an
+            instant scoring view for model testing.
+          </p>
+        </div>
+        <button class="primary" id="startButton" type="button">Start</button>
+      </section>
+
+      <form id="surveyForm" class="survey hidden" novalidate>
+        <div class="section-nav" id="sectionNav"></div>
+        <div id="questionHost"></div>
+        <div class="actions">
+          <button class="secondary" id="backButton" type="button">Back</button>
+          <button class="primary" id="nextButton" type="button">Next</button>
+        </div>
+      </form>
+
+      <section class="results hidden" id="results" aria-live="polite">
+        <div class="result-hero">
+          <div>
+            <p class="eyebrow">Calculated maturity</p>
+            <h2 id="tierName">Explorer</h2>
+            <p id="tierDescription"></p>
+          </div>
+          <div class="score-ring">
+            <span id="overallScore">0</span>
+            <small>/100</small>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <article class="panel">
+            <h3>Dimension Scores</h3>
+            <div id="dimensionScores" class="bars"></div>
+          </article>
+          <article class="panel">
+            <h3>Score Signals</h3>
+            <div id="scoreSignals" class="signal-list"></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <h3>Suggested Paths Forward</h3>
+          <div id="recommendations" class="recommendations"></div>
+        </article>
+
+        <article class="panel muted-panel">
+          <h3>Response Snapshot</h3>
+          <div id="responseSnapshot" class="snapshot"></div>
+        </article>
+
+        <div class="actions">
+          <button class="secondary" id="editButton" type="button">Edit answers</button>
+          <button class="primary" id="resetButton" type="button">Start over</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
