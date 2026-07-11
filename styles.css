@@ -368,6 +368,26 @@ button {
   background: #fafbf9;
 }
 
+.benchmark-panel,
+.report-panel,
+.full-report {
+  margin-top: 18px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel-header p {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .bars {
   display: grid;
   gap: 16px;
@@ -403,7 +423,8 @@ button {
 
 .signal-list,
 .recommendations,
-.snapshot {
+.snapshot,
+.benchmark-summary {
   display: grid;
   gap: 12px;
   margin-top: 16px;
@@ -411,11 +432,60 @@ button {
 
 .signal,
 .recommendation,
-.snapshot-row {
+.snapshot-row,
+.benchmark-card {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 13px 14px;
   background: #fff;
+}
+
+.benchmark-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: center;
+  background: #f4fbf9;
+  border-color: rgba(15, 118, 110, 0.22);
+}
+
+.metric {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  min-width: 86px;
+  color: var(--accent-dark);
+  font-size: 2.2rem;
+  font-weight: 950;
+}
+
+.metric small {
+  font-size: 0.95rem;
+}
+
+.benchmark-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.benchmark-grid div {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.benchmark-grid strong {
+  font-size: 1.3rem;
+}
+
+.benchmark-grid span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 760;
 }
 
 .signal strong,
@@ -427,7 +497,8 @@ button {
 
 .signal p,
 .recommendation p,
-.snapshot-row p {
+.snapshot-row p,
+.benchmark-card p {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
@@ -441,6 +512,88 @@ button {
 .signal.good {
   border-color: rgba(15, 118, 110, 0.32);
   background: #f4fbf9;
+}
+
+.report-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.form-grid label,
+.consent-line {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.consent-line {
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.consent-line input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.inline-actions {
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  border-top: 0;
+}
+
+.form-status {
+  margin: 0;
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.form-status.error {
+  color: var(--rose);
+}
+
+.report-content {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.report-content section {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fafbf9;
+}
+
+.report-content h4 {
+  margin: 0 0 8px;
+}
+
+.report-content p,
+.report-content li {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.report-content p {
+  margin: 8px 0 0;
+}
+
+.report-content ol {
+  margin: 0;
+  padding-left: 22px;
 }
 
 @media (max-width: 860px) {
@@ -461,8 +614,16 @@ button {
   }
 
   .question-card,
-  .grid.two {
+  .grid.two,
+  .form-grid,
+  .benchmark-grid {
     grid-template-columns: 1fr;
+  }
+
+  .panel-header,
+  .inline-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .question-card {
