@@ -296,6 +296,18 @@ button {
   color: var(--ink);
 }
 
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
 .field-error {
   margin-top: 14px;
   color: var(--rose);
@@ -370,7 +382,8 @@ button {
 
 .benchmark-panel,
 .report-panel,
-.full-report {
+.full-report,
+.next-step-panel {
   margin-top: 18px;
 }
 
