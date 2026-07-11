@@ -3,6 +3,8 @@ const state = {
   answers: {},
   latestScore: null,
   latestBenchmark: null,
+  responseId: null,
+  completionSaved: false,
 };
 
 const flatQuestions = sections.flatMap((section) =>
@@ -19,6 +21,9 @@ const backButton = document.querySelector("#backButton");
 const nextButton = document.querySelector("#nextButton");
 const reportRequestForm = document.querySelector("#reportRequestForm");
 const copyReportButton = document.querySelector("#copyReportButton");
+
+const SUPABASE_URL = "https://sesqavjfashncijbupqd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l6MwbtnLzeNLFU3B4cjpJA_MxzW5nqK";
 
 const benchmarkCohort = createSeededBenchmark(220);
 
@@ -61,6 +66,8 @@ document.querySelector("#resetButton").addEventListener("click", () => {
   state.answers = {};
   state.latestScore = null;
   state.latestBenchmark = null;
+  state.responseId = null;
+  state.completionSaved = false;
   results.classList.add("hidden");
   document.querySelector("#fullReport").classList.add("hidden");
   reportRequestForm.reset();
