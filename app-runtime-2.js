@@ -51,6 +51,7 @@ function renderResults() {
   renderRecommendations(score);
   renderSnapshot();
   prefillReportRequest();
+  saveSurveyCompletion(score, benchmark);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -118,7 +119,7 @@ function prefillReportRequest() {
   document.querySelector("#reportEmail").value = state.answers.participant_email || "";
 }
 
-function handleReportRequest() {
+async function handleReportRequest() {
   const name = document.querySelector("#reportName").value.trim();
   const email = document.querySelector("#reportEmail").value.trim();
   const company = document.querySelector("#reportCompany").value.trim();
@@ -138,7 +139,8 @@ function handleReportRequest() {
   }
 
   const request = {
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    id: createId(),
+    responseId: getResponseId(),
     createdAt: new Date().toISOString(),
     name,
     email,
@@ -153,8 +155,15 @@ function handleReportRequest() {
   };
 
   saveAlphaReportRequest(request);
+  setReportStatus("Saving your preferences...");
+  try {
+    await saveOptInRequest(request);
+    setReportStatus("Preferences saved.");
+  } catch (error) {
+    console.warn("Supabase opt-in save failed", error);
+    setReportStatus("Preferences saved locally. Database save is not available yet.", true);
+  }
   renderOptInConfirmation(request);
-  setReportStatus("Alpha preferences saved locally.");
 }
 
 function setReportStatus(message, isError = false) {
@@ -169,6 +178,99 @@ function saveAlphaReportRequest(request) {
   const withoutDuplicate = existing.filter((item) => item.email.toLowerCase() !== request.email.toLowerCase());
   withoutDuplicate.push(request);
   localStorage.setItem(key, JSON.stringify(withoutDuplicate.slice(-50)));
+}
+
+async function saveSurveyCompletion(score, benchmark) {
+  if (state.completionSaved) return;
+  state.completionSaved = true;
+  const responseId = getResponseId();
+  const payload = {
+    response_id: responseId,
+    source: "github_pages_alpha",
+    overall_score: score.overall,
+    tier: score.tier.label,
+    base_tier: score.baseTier.label,
+    gates_passed: score.gatesPassed,
+    percentile: benchmark.percentile,
+    dimension_scores: score.totals,
+    score_payload: score,
+    benchmark_payload: benchmark,
+    answers: state.answers,
+    demographics: {
+      industry: answerText("company_industry"),
+      revenue: answerText("company_revenue"),
+      acv: answerText("company_acv"),
+      gtm_model: answerText("company_gtm"),
+      funding: answerText("company_funding"),
+    },
+    participant: {
+      job_level: answerText("participant_level"),
+      job_function: answerText("participant_function"),
+      email: state.answers.participant_email || null,
+    },
+    company_industry: answerText("company_industry"),
+    company_revenue: answerText("company_revenue"),
+    company_acv: answerText("company_acv"),
+    company_gtm: answerText("company_gtm"),
+    company_funding: answerText("company_funding"),
+    participant_level: answerText("participant_level"),
+    participant_function: answerText("participant_function"),
+    participant_email: state.answers.participant_email || null,
+    user_agent: navigator.userAgent,
+  };
+
+  try {
+    await insertSupabase("cmo_ai_maturity_responses", payload);
+  } catch (error) {
+    state.completionSaved = false;
+    console.warn("Supabase completion save failed", error);
+  }
+}
+
+async function saveOptInRequest(request) {
+  const payload = {
+    response_id: request.responseId,
+    name: request.name || null,
+    email: request.email,
+    company: request.company || null,
+    opt_benchmark_report: request.optBenchmarkReport,
+    opt_newsletter: request.optNewsletter,
+    opt_starter: request.optStarter,
+    consent_research: request.consentResearch,
+    overall_score: request.score.overall,
+    tier: request.score.tier.label,
+    participant_level: answerText("participant_level"),
+    participant_function: answerText("participant_function"),
+    answers: state.answers,
+  };
+  await insertSupabase("cmo_ai_maturity_opt_ins", payload);
+}
+
+async function insertSupabase(table, payload) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+
+function getResponseId() {
+  if (!state.responseId) state.responseId = createId();
+  return state.responseId;
+}
+
+function createId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function renderOptInConfirmation(request) {
