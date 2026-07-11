@@ -99,6 +99,7 @@ window.cmoAiAlpha = {
   getSavedReportRequests() {
     return JSON.parse(localStorage.getItem("cmo-ai-alpha-report-requests") || "[]");
   },
+  getResponseId,
 };
 
 updateProgress();
