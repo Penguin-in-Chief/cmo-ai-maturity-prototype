@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CMO AI Transformation Index Prototype</title>
+    <title>CMO AI Maturity Assessment Alpha</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -11,18 +11,18 @@
       <section class="topbar" aria-label="Survey header">
         <div>
           <p class="eyebrow">CMO Huddles x Benchmarkit</p>
-          <h1>CMO AI Transformation Index</h1>
+          <h1>CMO AI Maturity Assessment</h1>
         </div>
         <div class="score-pill" id="progressPill">0% complete</div>
       </section>
 
       <section class="intro" id="intro">
         <div class="intro-copy">
-          <h2>Prototype Questionnaire</h2>
+          <h2>Benchmark your marketing AI maturity</h2>
           <p>
-            This local prototype includes the original profile questions, the
-            22 benchmark questions, optional qualitative evidence, and an
-            instant scoring view for model testing.
+            Complete the assessment to receive an immediate score and maturity
+            tier. You can then opt in to receive the benchmark report, Huddle Up,
+            and relevant CMO Huddles opportunities.
           </p>
         </div>
         <button class="primary" id="startButton" type="button">Start</button>
@@ -61,9 +61,74 @@
           </article>
         </div>
 
+        <article class="panel benchmark-panel">
+          <h3>Founding Benchmark Preview</h3>
+          <div id="benchmarkSummary" class="benchmark-summary"></div>
+        </article>
+
         <article class="panel">
-          <h3>Suggested Paths Forward</h3>
+          <h3>Suggested Priorities</h3>
           <div id="recommendations" class="recommendations"></div>
+        </article>
+
+        <article class="panel report-panel">
+          <div class="panel-header">
+            <div>
+              <h3>Get the Benchmark Report and CMO Huddles Updates</h3>
+              <p>
+                Your score is available immediately. Share your email if you want
+                the full benchmark report, the Huddle Up newsletter, or a follow-up
+                about the CMO Huddles Starter program.
+              </p>
+            </div>
+          </div>
+          <form id="reportRequestForm" class="report-form" novalidate>
+            <div class="form-grid">
+              <label>
+                <span>Name</span>
+                <input id="reportName" type="text" autocomplete="name" placeholder="Drew Neisser" />
+              </label>
+              <label>
+                <span>Email</span>
+                <input id="reportEmail" type="email" autocomplete="email" placeholder="name@example.com" />
+              </label>
+              <label>
+                <span>Company</span>
+                <input id="reportCompany" type="text" autocomplete="organization" placeholder="Company" />
+              </label>
+            </div>
+            <label class="consent-line">
+              <input id="optBenchmarkReport" type="checkbox" />
+              <span>Send me the full CMO AI benchmark report when it is available.</span>
+            </label>
+            <label class="consent-line">
+              <input id="optNewsletter" type="checkbox" />
+              <span>Subscribe me to Huddle Up, the CMO Huddles newsletter.</span>
+            </label>
+            <label class="consent-line">
+              <input id="optStarter" type="checkbox" />
+              <span>I am interested in learning more about the CMO Huddles Starter program.</span>
+            </label>
+            <label class="consent-line">
+              <input id="consentResearch" type="checkbox" />
+              <span>CMO Huddles may include my anonymized responses in benchmark research.</span>
+            </label>
+            <div class="actions inline-actions">
+              <p id="reportRequestStatus" class="form-status"></p>
+              <button class="primary" type="submit">Save my preferences</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel full-report hidden" id="fullReport">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Alpha confirmation</p>
+              <h3 id="reportTitle">Your preferences are saved</h3>
+            </div>
+            <button class="secondary" id="copyReportButton" type="button">Copy summary</button>
+          </div>
+          <div id="fullReportContent" class="report-content"></div>
         </article>
 
         <article class="panel muted-panel">
@@ -78,6 +143,6 @@
       </section>
     </main>
 
-    <script src="./app.js"></script>
+    <script src="./app.js?v=simplified-v1-alpha"></script>
   </body>
 </html>
