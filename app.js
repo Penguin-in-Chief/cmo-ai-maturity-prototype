@@ -46,11 +46,13 @@ const sections = [
         type: "radio",
         required: true,
         options: [
-          "B2B SaaS",
+          "B2B Software / SaaS / Cybersecurity",
           "AI-Native Software",
-          "B2B Services",
-          "Manufacturing",
-          "Financial Services",
+          "B2B Services / Consulting",
+          "Manufacturing / Industrial",
+          "Financial Services / Insurance",
+          "Healthcare / Life Sciences",
+          "Technology Hardware / Infrastructure",
           "Other",
         ],
       },
@@ -452,7 +454,7 @@ const sections = [
         id: "q21_business_outcomes",
         short: "Q25",
         title: "Which business outcomes have improved most due to AI use?",
-        helper: "Rank the top three.",
+        helper: "Rank the top three, or select No measurable impact as #1 if none apply.",
         type: "rank",
         required: true,
         topOnly: 3,
@@ -532,8 +534,8 @@ const sections = [
         id: "participant_email",
         short: "Q30",
         title:
-          "What email address should we use to send your complimentary copy of the CMO AI Transformation Index executive report?",
-        helper: "Please use your company email address.",
+          "What email address should we use if you would like CMO Huddles follow-up?",
+        helper: "Use the email address where you want to receive CMO Huddles updates.",
         type: "email",
         required: false,
       },
@@ -544,6 +546,10 @@ const sections = [
 const state = {
   current: 0,
   answers: {},
+  latestScore: null,
+  latestBenchmark: null,
+  responseId: null,
+  completionSaved: false,
 };
 
 const flatQuestions = sections.flatMap((section) =>
@@ -558,6 +564,16 @@ const surveyForm = document.querySelector("#surveyForm");
 const results = document.querySelector("#results");
 const backButton = document.querySelector("#backButton");
 const nextButton = document.querySelector("#nextButton");
+const reportRequestForm = document.querySelector("#reportRequestForm");
+const copyReportButton = document.querySelector("#copyReportButton");
+
+const SUPABASE_URL = "https://sesqavjfashncijbupqd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l6MwbtnLzeNLFU3B4cjpJA_MxzW5nqK";
+const isTestMode = new URLSearchParams(window.location.search).has("test");
+const responseSource = isTestMode ? "github_pages_test" : "github_pages_webflow";
+
+const benchmark = window.realBenchmark || createFallbackBenchmark();
+const benchmarkCohort = benchmark.scores;
 
 document.querySelector("#startButton").addEventListener("click", () => {
   intro.classList.add("hidden");
@@ -587,18 +603,20 @@ nextButton.addEventListener("click", () => {
   renderQuestion();
 });
 
-document.querySelector("#editButton").addEventListener("click", () => {
-  results.classList.add("hidden");
-  surveyForm.classList.remove("hidden");
-  renderQuestion();
+reportRequestForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  handleReportRequest();
 });
 
-document.querySelector("#resetButton").addEventListener("click", () => {
-  state.current = 0;
-  state.answers = {};
-  results.classList.add("hidden");
-  intro.classList.remove("hidden");
-  updateProgress();
+copyReportButton.addEventListener("click", async () => {
+  const reportText = document.querySelector("#fullReportContent").innerText;
+  if (!reportText.trim()) return;
+  try {
+    await navigator.clipboard.writeText(reportText);
+    setReportStatus("Report copied to clipboard.");
+  } catch {
+    setReportStatus("Copy failed in this browser. You can still select and copy the report text.");
+  }
 });
 
 function scoredRadio(id, short, title, dimension, weight, options) {
@@ -814,6 +832,9 @@ function validate(question) {
     const ranks = Object.values(answer || {}).filter(Boolean);
     const needed = question.topOnly || question.options.length;
     const uniqueRanks = new Set(ranks);
+    if (question.id === "q21_business_outcomes" && Number(answer?.[7]) === 1) {
+      return true;
+    }
     if (ranks.length < needed) {
       showError(question.topOnly ? `Choose your top ${needed}.` : "Rank every option to continue.");
       return false;
@@ -856,6 +877,7 @@ function updateProgress() {
     if (question.type === "rank") {
       const ranks = Object.values(answer || {}).filter(Boolean);
       const needed = question.topOnly || question.options.length;
+      if (question.id === "q21_business_outcomes" && Number(answer?.[7]) === 1) return true;
       return ranks.length >= needed && new Set(ranks).size === ranks.length;
     }
     return Array.isArray(answer) ? answer.length > 0 : answer !== undefined && answer !== "";
@@ -961,6 +983,9 @@ function getPerceptionGap(calculatedRank) {
 
 function renderResults() {
   const score = calculateScore();
+  const benchmark = compareToBenchmark(score, benchmarkCohort);
+  state.latestScore = score;
+  state.latestBenchmark = benchmark;
   surveyForm.classList.add("hidden");
   results.classList.remove("hidden");
   progressPill.textContent = "Results";
@@ -1005,9 +1030,33 @@ function renderResults() {
     </div>
   `;
 
+  renderBenchmarkSummary(score, benchmark);
   renderRecommendations(score);
   renderSnapshot();
+  prefillReportRequest();
+  saveSurveyCompletion(score, benchmark);
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderBenchmarkSummary(score, benchmark) {
+  const segmentComparisons = getSegmentComparisons();
+  const medianComparison = score.overall > benchmark.median ? "above" : score.overall < benchmark.median ? "below" : "at";
+
+  document.querySelector("#benchmarkSummary").innerHTML = `
+    <div class="benchmark-card">
+      <span class="metric">${benchmark.percentile}<small>th</small></span>
+      <div>
+        <strong>Percentile vs ${window.realBenchmark ? "Founding Benchmark Cohort" : "benchmark preview"}</strong>
+        <p>Compared with ${benchmark.count} scoreable responses fielded by CMO Huddles and Benchmarkit in July-August 2026.</p>
+      </div>
+    </div>
+    <div class="benchmark-grid">
+      <div><strong>${benchmark.median}</strong><span>Overall median</span></div>
+      <div><strong>${benchmark.p75}</strong><span>75th percentile</span></div>
+      <div><strong>${medianComparison}</strong><span>Compared with median</span></div>
+    </div>
+    ${renderSegmentComparisons(segmentComparisons)}
+  `;
 }
 
 function renderRecommendations(score) {
@@ -1048,6 +1097,318 @@ function renderSnapshot() {
       `,
     )
     .join("");
+}
+
+function prefillReportRequest() {
+  document.querySelector("#reportEmail").value = state.answers.participant_email || "";
+}
+
+async function handleReportRequest() {
+  const name = document.querySelector("#reportName").value.trim();
+  const email = document.querySelector("#reportEmail").value.trim();
+  const company = document.querySelector("#reportCompany").value.trim();
+  const optBenchmarkReport = document.querySelector("#optBenchmarkReport").checked;
+  const optNewsletter = document.querySelector("#optNewsletter").checked;
+  const optStarter = document.querySelector("#optStarter").checked;
+  const consentResearch = document.querySelector("#consentResearch").checked;
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setReportStatus("Enter a valid email address to save your preferences.", true);
+    return;
+  }
+
+  if (!optBenchmarkReport && !optNewsletter && !optStarter) {
+    setReportStatus("Choose at least one option: benchmark report, newsletter, or Starter program interest.", true);
+    return;
+  }
+
+  const request = {
+    id: createId(),
+    responseId: getResponseId(),
+    createdAt: new Date().toISOString(),
+    source: responseSource,
+    name,
+    email,
+    company,
+    optBenchmarkReport,
+    optNewsletter,
+    optStarter,
+    consentResearch,
+    score: state.latestScore,
+    benchmark: state.latestBenchmark,
+    answers: state.answers,
+  };
+
+  saveAlphaReportRequest(request);
+  setReportStatus("Saving your preferences...");
+  try {
+    await saveOptInRequest(request);
+    setReportStatus("Preferences saved.");
+  } catch (error) {
+    console.warn("Supabase opt-in save failed", error);
+    setReportStatus("Preferences saved locally. Database save is not available yet.", true);
+  }
+  renderOptInConfirmation(request);
+}
+
+function setReportStatus(message, isError = false) {
+  const status = document.querySelector("#reportRequestStatus");
+  status.textContent = message;
+  status.classList.toggle("error", Boolean(isError));
+}
+
+function saveAlphaReportRequest(request) {
+  const key = "cmo-ai-report-requests";
+  const existing = JSON.parse(localStorage.getItem(key) || "[]");
+  const withoutDuplicate = existing.filter((item) => item.email.toLowerCase() !== request.email.toLowerCase());
+  withoutDuplicate.push(request);
+  localStorage.setItem(key, JSON.stringify(withoutDuplicate.slice(-50)));
+}
+
+async function saveSurveyCompletion(score, benchmark) {
+  if (state.completionSaved) return;
+  state.completionSaved = true;
+  const responseId = getResponseId();
+  const payload = {
+    response_id: responseId,
+    source: responseSource,
+    overall_score: score.overall,
+    tier: score.tier.label,
+    base_tier: score.baseTier.label,
+    gates_passed: score.gatesPassed,
+    percentile: benchmark.percentile,
+    dimension_scores: score.totals,
+    score_payload: score,
+    benchmark_payload: benchmark,
+    answers: state.answers,
+    demographics: {
+      industry: answerText("company_industry"),
+      revenue: answerText("company_revenue"),
+      acv: answerText("company_acv"),
+      gtm_model: answerText("company_gtm"),
+      funding: answerText("company_funding"),
+    },
+    participant: {
+      job_level: answerText("participant_level"),
+      job_function: answerText("participant_function"),
+      email: state.answers.participant_email || null,
+    },
+    company_industry: answerText("company_industry"),
+    company_revenue: answerText("company_revenue"),
+    company_acv: answerText("company_acv"),
+    company_gtm: answerText("company_gtm"),
+    company_funding: answerText("company_funding"),
+    participant_level: answerText("participant_level"),
+    participant_function: answerText("participant_function"),
+    participant_email: state.answers.participant_email || null,
+    user_agent: navigator.userAgent,
+  };
+
+  try {
+    await insertSupabase("cmo_ai_maturity_responses", payload);
+  } catch (error) {
+    state.completionSaved = false;
+    console.warn("Supabase completion save failed", error);
+  }
+}
+
+async function saveOptInRequest(request) {
+  const payload = {
+    response_id: request.responseId,
+    name: request.name || null,
+    email: request.email,
+    company: request.company || null,
+    opt_benchmark_report: request.optBenchmarkReport,
+    opt_newsletter: request.optNewsletter,
+    opt_starter: request.optStarter,
+    consent_research: request.consentResearch,
+    overall_score: request.score.overall,
+    tier: request.score.tier.label,
+    participant_level: answerText("participant_level"),
+    participant_function: answerText("participant_function"),
+    answers: state.answers,
+  };
+  await insertSupabase("cmo_ai_maturity_opt_ins", payload);
+}
+
+async function insertSupabase(table, payload) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+}
+
+function getResponseId() {
+  if (!state.responseId) state.responseId = createId();
+  return state.responseId;
+}
+
+function createId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function renderOptInConfirmation(request) {
+  const { score, benchmark } = request;
+  const sortedDimensions = getSortedDimensions(score);
+  const weakest = sortedDimensions[0];
+  const strongest = sortedDimensions.at(-1);
+  const displayName = request.name || "there";
+  const selected = [
+    request.optBenchmarkReport ? "Full benchmark report" : "",
+    request.optNewsletter ? "Huddle Up newsletter" : "",
+    request.optStarter ? "Starter program interest" : "",
+  ].filter(Boolean);
+
+  document.querySelector("#reportTitle").textContent = `Thanks, ${displayName}`;
+  document.querySelector("#fullReportContent").innerHTML = `
+    <section>
+      <h4>Saved Preferences</h4>
+      <p>Your interest has been saved for: <strong>${selected.join(", ")}</strong>.</p>
+    </section>
+    <section>
+      <h4>Your Instant Assessment</h4>
+      <p>Your organization scored <strong>${score.overall}/100</strong>, placing it in the <strong>${score.tier.label}</strong> tier. Compared with the Founding Benchmark Cohort, that is approximately the <strong>${benchmark.percentile}th percentile</strong>.</p>
+    </section>
+    <section>
+      <h4>Helpful Follow-Up Context</h4>
+      <p><strong>Strongest dimension:</strong> ${strongest[1].label} (${strongest[1].normalized}/100). ${dimensions[strongest[0]].recommendation}</p>
+      <p><strong>Priority gap:</strong> ${weakest[1].label} (${weakest[1].normalized}/100). ${dimensions[weakest[0]].recommendation}</p>
+    </section>
+  `;
+  document.querySelector("#fullReport").classList.remove("hidden");
+  document.querySelector("#fullReport").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function getSortedDimensions(score) {
+  return Object.entries(score.totals).sort((a, b) => a[1].normalized - b[1].normalized);
+}
+
+function getPriorityRecommendations(score) {
+  const sorted = getSortedDimensions(score);
+  const weakest = sorted[0][0];
+  const priorities = [
+    `Focus first on ${sorted[0][1].label}; it is the clearest constraint on the next stage of maturity.`,
+    `Use ${sorted.at(-1)[1].label} as the source of momentum rather than starting from scratch.`,
+  ];
+
+  if (weakest === "measurement") {
+    priorities.push("Define a small set of adoption, productivity, workflow, and capacity metrics before asking for broader AI investment.");
+  } else if (weakest === "governance") {
+    priorities.push("Create practical risk-based governance so teams can scale AI without slowing every workflow to a crawl.");
+  } else if (weakest === "workflow") {
+    priorities.push("Pick one high-value workflow and redesign it end to end instead of adding AI to isolated tasks.");
+  } else if (weakest === "talent") {
+    priorities.push("Turn AI enablement into role-specific expectations, templates, and coaching rather than generic training.");
+  } else {
+    priorities.push("Make ownership and executive review explicit so AI priorities connect to GTM operating decisions.");
+  }
+
+  return priorities;
+}
+
+function getPov(score, weakestId, strongestId) {
+  const tierLead = {
+    explorer: "The biggest opportunity is to turn useful experimentation into a clearer operating motion.",
+    operator: "The organization has moved beyond isolated experimentation, but maturity now depends on repeatability, ownership, and measurement.",
+    orchestrator: "The foundation is strong enough to scale, but the next move is to make AI part of how GTM decisions are made.",
+    transformer: "The organization is showing the pattern of a marketing team that can use AI as an operating advantage, not just a productivity tool.",
+  }[score.tier.id];
+
+  return `${tierLead} Because ${dimensions[weakestId].label} is the lowest dimension and ${dimensions[strongestId].label} is the strongest, the path forward should pair practical improvement with the strengths already in place.`;
+}
+
+function getInfluenceGuidance(weakestId) {
+  const guidance = {
+    strategy: "Bring the CEO, CFO, Sales, Customer Success, and IT into a focused conversation about which GTM outcomes AI should improve first.",
+    workflow: "Work with Sales, RevOps, Customer Success, and IT to choose one workflow where shared data and shared handoffs matter.",
+    talent: "Align with People/HR and functional leaders so AI adoption becomes part of role clarity, enablement, and change management.",
+    governance: "Partner with IT, Legal, Security, Finance, and brand owners to define oversight that reflects actual workflow risk.",
+    measurement: "Work with Finance, RevOps, Sales, and Customer Success to connect AI activity to productivity, capacity, pipeline, or customer metrics.",
+  };
+  return guidance[weakestId];
+}
+
+function compareToBenchmark(score, cohort) {
+  const belowOrEqual = cohort.filter((item) => item <= score.overall).length;
+  return {
+    count: cohort.length,
+    percentile: Math.max(1, Math.min(99, Math.round((belowOrEqual / cohort.length) * 100))),
+    median: percentileValue(cohort, 50),
+    p75: percentileValue(cohort, 75),
+  };
+}
+
+function getSegmentComparisons() {
+  const segmentConfig = [
+    { key: "industry", label: "Industry", answerId: "company_industry" },
+    { key: "revenue", label: "Revenue", answerId: "company_revenue" },
+    { key: "gtm", label: "GTM model", answerId: "company_gtm" },
+  ];
+
+  return segmentConfig
+    .map((segment) => {
+      const value = answerText(segment.answerId);
+      const data = benchmark.segments?.[segment.key]?.[value];
+      if (!data) return null;
+      return { ...segment, value, ...data };
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function renderSegmentComparisons(comparisons) {
+  if (!comparisons.length) {
+    return `
+      <div class="segment-note">
+        Segment benchmark: this profile does not yet have enough matching responses for a reliable segment comparison.
+      </div>
+    `;
+  }
+
+  return `
+    <div class="segment-comparisons">
+      ${comparisons
+        .map(
+          (comparison) => `
+            <div>
+              <strong>${comparison.median}</strong>
+              <span>${comparison.label}: ${comparison.value}</span>
+              <small>n=${comparison.count}</small>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function percentileValue(values, percentile) {
+  if (!values.length) return 0;
+  const index = Math.round((percentile / 100) * (values.length - 1));
+  return values[index];
+}
+
+function createFallbackBenchmark() {
+  const scores = [7, 10, 18, 24, 28, 32, 35, 38, 42, 46, 49, 53, 57, 61, 65, 73, 80, 86, 90];
+  return {
+    label: "Benchmark Preview",
+    fielded: "July-August 2026",
+    source: "CMO Huddles and Benchmarkit",
+    count: scores.length,
+    scores,
+    segments: {},
+  };
 }
 
 function answerText(questionId) {
@@ -1107,4 +1468,55 @@ function round1(value) {
   return Math.round(value * 10) / 10;
 }
 
+function getSampleResponse() {
+  return {
+    company_industry: 0,
+    company_revenue: 4,
+    company_acv: 5,
+    company_gtm: 2,
+    company_funding: 1,
+    q1_owner: 3,
+    q2_alignment: 3,
+    q3_review: 2,
+    q4_lens: { 0: 1, 2: 2, 3: 3, 4: 4, 5: 5, 1: 6, 6: 7 },
+    q5_self: 2,
+    q6_functions: [0, 1, 2, 4],
+    q8_agentic: 2,
+    q9_gtm_integration: 2,
+    q10_data_foundation: 2,
+    q11_barriers: [1, 2, 5],
+    q12_roles: [0, 5],
+    q13_programs: [0, 1, 2],
+    q14_change: 2,
+    q15_governance: 2,
+    q16_oversight: 2,
+    q17_investment: 2,
+    q18_buy_build: 3,
+    q19_roi: 2,
+    q20_impact_where: [1, 2, 4],
+    q21_business_outcomes: { 0: 1, 6: 2, 4: 3 },
+    q22_results: 2,
+    q23_open: "AI-assisted campaign planning and content production.",
+    participant_level: 0,
+    participant_function: 4,
+    participant_email: "drew@example.com",
+  };
+}
+
+window.cmoAiAlpha = {
+  loadSampleResponse() {
+    state.answers = getSampleResponse();
+    renderResults();
+    return calculateScore();
+  },
+  getSavedReportRequests() {
+    return JSON.parse(localStorage.getItem("cmo-ai-report-requests") || "[]");
+  },
+  getResponseId,
+};
+
 updateProgress();
+
+if (new URLSearchParams(window.location.search).has("sample")) {
+  window.cmoAiAlpha.loadSampleResponse();
+}
