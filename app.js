@@ -74,26 +74,8 @@ const sections = [
         ],
       },
       {
-        id: "company_acv",
-        short: "Q3",
-        title: "Select the average annual contract value:",
-        type: "radio",
-        required: true,
-        options: [
-          "< $1K",
-          "$1K - $5K",
-          "$5K - $10K",
-          "$10K - $25K",
-          "$25K - $50K",
-          "$50K - $100K",
-          "$100K - $250K",
-          "$250K - $1M",
-          "> $1M",
-        ],
-      },
-      {
         id: "company_gtm",
-        short: "Q4",
+        short: "Q3",
         title: "Select your primary go-to-market model:",
         type: "radio",
         required: true,
@@ -101,7 +83,7 @@ const sections = [
       },
       {
         id: "company_funding",
-        short: "Q5",
+        short: "Q4",
         title: "How is your company funded?",
         type: "radio",
         required: true,
@@ -120,7 +102,7 @@ const sections = [
     questions: [
       scoredRadio(
         "q1_owner",
-        "Q6",
+        "Q5",
         "Who owns Marketing AI strategy and execution today?",
         "strategy",
         7,
@@ -134,7 +116,7 @@ const sections = [
       ),
       scoredRadio(
         "q2_alignment",
-        "Q7",
+        "Q6",
         "Which best describes how Marketing AI priorities are set?",
         "strategy",
         7,
@@ -148,7 +130,7 @@ const sections = [
       ),
       scoredRadio(
         "q3_review",
-        "Q8",
+        "Q7",
         "How often is Marketing AI progress reviewed with executive or GTM leadership?",
         "strategy",
         6,
@@ -161,27 +143,8 @@ const sections = [
         ],
       ),
       {
-        id: "q4_lens",
-        short: "Q9",
-        title:
-          "What is the primary business lens through which your company views AI investment in Marketing?",
-        helper: "Rank from highest to lowest priority.",
-        type: "rank",
-        required: true,
-        scoringLabel: "Unscored benchmark",
-        options: [
-          "Increased productivity",
-          "Reduced costs",
-          "Speed to market",
-          "Pipeline generation",
-          "Revenue growth",
-          "Competitive differentiation",
-          "Business transformation",
-        ],
-      },
-      {
         id: "q5_self",
-        short: "Q10",
+        short: "Q8",
         title: "Which statement best reflects your Marketing organization's use of AI today?",
         type: "radio",
         required: true,
@@ -202,7 +165,7 @@ const sections = [
     questions: [
       {
         id: "q6_functions",
-        short: "Q11",
+        short: "Q9",
         title: "Which Marketing functions or program areas use AI in a repeatable way today?",
         helper: "Select all that apply.",
         type: "checkbox",
@@ -224,7 +187,7 @@ const sections = [
       },
       scoredRadio(
         "q8_agentic",
-        "Q12",
+        "Q10",
         "Does Marketing use AI-enabled multi-step or agentic workflows in production?",
         "workflow",
         7,
@@ -238,7 +201,7 @@ const sections = [
       ),
       scoredRadio(
         "q9_gtm_integration",
-        "Q13",
+        "Q11",
         "How integrated are Marketing AI workflows with broader GTM processes?",
         "workflow",
         7,
@@ -252,7 +215,7 @@ const sections = [
       ),
       scoredRadio(
         "q10_data_foundation",
-        "Q14",
+        "Q12",
         "Which best describes the data foundation supporting Marketing AI workflows?",
         "workflow",
         6,
@@ -264,26 +227,6 @@ const sections = [
           "Marketing and GTM AI workflows use shared, trusted data with clear ownership, quality standards, and feedback loops",
         ],
       ),
-      {
-        id: "q11_barriers",
-        short: "Q15",
-        title: "What are the top barriers to scaling AI in Marketing today?",
-        helper: "Select up to three.",
-        type: "checkbox",
-        max: 3,
-        required: true,
-        scoringLabel: "Unscored benchmark",
-        options: [
-          "Insufficient AI or technical skills",
-          "Budget or cost management",
-          "Data quality or data access",
-          "Governance, legal, or security risk",
-          "Brand risk or unproven output quality",
-          "Difficulty measuring business impact",
-          "Cultural resistance or change fatigue",
-          "Other",
-        ],
-      },
     ],
   },
   {
@@ -292,7 +235,7 @@ const sections = [
     questions: [
       {
         id: "q12_roles",
-        short: "Q16",
+        short: "Q13",
         title:
           "Which dedicated AI-related capabilities or roles exist in your Marketing organization today?",
         helper: "Select all that apply.",
@@ -314,7 +257,7 @@ const sections = [
       },
       {
         id: "q13_programs",
-        short: "Q17",
+        short: "Q14",
         title: "What programs exist to build AI competency in the Marketing team?",
         helper: "Select all that apply.",
         type: "checkbox",
@@ -335,7 +278,7 @@ const sections = [
       },
       scoredRadio(
         "q14_change",
-        "Q18",
+        "Q15",
         "How does your organization address team members who are not engaging with AI tools, training, or new AI-enabled ways of working?",
         "talent",
         6,
@@ -355,7 +298,7 @@ const sections = [
     questions: [
       scoredRadio(
         "q15_governance",
-        "Q19",
+        "Q16",
         "Which best describes your Marketing AI governance practices today?",
         "governance",
         5,
@@ -369,7 +312,7 @@ const sections = [
       ),
       scoredRadio(
         "q16_oversight",
-        "Q20",
+        "Q17",
         "How does your organization manage human oversight in AI-enabled Marketing workflows?",
         "governance",
         5,
@@ -383,7 +326,7 @@ const sections = [
       ),
       scoredRadio(
         "q17_investment",
-        "Q21",
+        "Q18",
         "Which best describes how AI investments used by Marketing are funded and governed?",
         "governance",
         4,
@@ -397,7 +340,7 @@ const sections = [
       ),
       scoredRadio(
         "q18_buy_build",
-        "Q22",
+        "Q19",
         "Which best describes how your organization evaluates whether to buy, build, or customize AI capabilities used by Marketing?",
         "governance",
         4,
@@ -417,7 +360,7 @@ const sections = [
     questions: [
       scoredRadio(
         "q19_roi",
-        "Q23",
+        "Q20",
         "Which best describes how your organization measures the impact of AI in Marketing?",
         "measurement",
         9,
@@ -431,7 +374,7 @@ const sections = [
       ),
       {
         id: "q20_impact_where",
-        short: "Q24",
+        short: "Q21",
         title: "Where has AI produced measurable impact in Marketing?",
         helper: "Select all that apply.",
         type: "checkbox",
@@ -450,29 +393,9 @@ const sections = [
           "Cost reduction",
         ],
       },
-      {
-        id: "q21_business_outcomes",
-        short: "Q25",
-        title: "Which business outcomes have improved most due to AI use?",
-        helper: "Rank the top three, or select No measurable impact as #1 if none apply.",
-        type: "rank",
-        required: true,
-        topOnly: 3,
-        scoringLabel: "Unscored benchmark",
-        options: [
-          "Pipeline",
-          "Win rates",
-          "Deal velocity",
-          "Retention",
-          "Revenue",
-          "Expansion",
-          "Marketing efficiency",
-          "No measurable impact",
-        ],
-      },
       scoredRadio(
         "q22_results",
-        "Q26",
+        "Q22",
         "How are AI performance insights used in Marketing decisions?",
         "measurement",
         8,
@@ -484,16 +407,6 @@ const sections = [
           "They are part of regular Marketing or GTM operating reviews and investment decisions",
         ],
       ),
-      {
-        id: "q23_open",
-        short: "Q27",
-        title:
-          "What is the single most impactful AI use case that contributed to a measurable business outcome?",
-        helper: "Optional open text.",
-        type: "textarea",
-        required: false,
-        scoringLabel: "Unscored optional evidence",
-      },
     ],
   },
   {
@@ -502,7 +415,7 @@ const sections = [
     questions: [
       {
         id: "participant_level",
-        short: "Q28",
+        short: "Q23",
         title: "Select your current job level:",
         type: "radio",
         required: true,
@@ -517,7 +430,7 @@ const sections = [
       },
       {
         id: "participant_function",
-        short: "Q29",
+        short: "Q24",
         title: "Select your current job function:",
         type: "radio",
         required: true,
@@ -532,7 +445,7 @@ const sections = [
       },
       {
         id: "participant_email",
-        short: "Q30",
+        short: "Q25",
         title:
           "What email address should we use if you would like CMO Huddles follow-up?",
         helper: "Use the email address where you want to receive CMO Huddles updates.",
@@ -832,9 +745,6 @@ function validate(question) {
     const ranks = Object.values(answer || {}).filter(Boolean);
     const needed = question.topOnly || question.options.length;
     const uniqueRanks = new Set(ranks);
-    if (question.id === "q21_business_outcomes" && Number(answer?.[7]) === 1) {
-      return true;
-    }
     if (ranks.length < needed) {
       showError(question.topOnly ? `Choose your top ${needed}.` : "Rank every option to continue.");
       return false;
@@ -877,7 +787,6 @@ function updateProgress() {
     if (question.type === "rank") {
       const ranks = Object.values(answer || {}).filter(Boolean);
       const needed = question.topOnly || question.options.length;
-      if (question.id === "q21_business_outcomes" && Number(answer?.[7]) === 1) return true;
       return ranks.length >= needed && new Set(ranks).size === ranks.length;
     }
     return Array.isArray(answer) ? answer.length > 0 : answer !== undefined && answer !== "";
@@ -1083,8 +992,6 @@ function renderSnapshot() {
     ["GTM model", answerText("company_gtm")],
     ["AI investment governance", answerText("q17_investment")],
     ["Buy/build evaluation", answerText("q18_buy_build")],
-    ["Top barriers", answerText("q11_barriers")],
-    ["Optional use case", state.answers.q23_open || "Not provided"],
   ];
 
   document.querySelector("#responseSnapshot").innerHTML = profileRows
@@ -1184,7 +1091,6 @@ async function saveSurveyCompletion(score, benchmark) {
     demographics: {
       industry: answerText("company_industry"),
       revenue: answerText("company_revenue"),
-      acv: answerText("company_acv"),
       gtm_model: answerText("company_gtm"),
       funding: answerText("company_funding"),
     },
@@ -1195,7 +1101,6 @@ async function saveSurveyCompletion(score, benchmark) {
     },
     company_industry: answerText("company_industry"),
     company_revenue: answerText("company_revenue"),
-    company_acv: answerText("company_acv"),
     company_gtm: answerText("company_gtm"),
     company_funding: answerText("company_funding"),
     participant_level: answerText("participant_level"),
@@ -1472,19 +1377,16 @@ function getSampleResponse() {
   return {
     company_industry: 0,
     company_revenue: 4,
-    company_acv: 5,
     company_gtm: 2,
     company_funding: 1,
     q1_owner: 3,
     q2_alignment: 3,
     q3_review: 2,
-    q4_lens: { 0: 1, 2: 2, 3: 3, 4: 4, 5: 5, 1: 6, 6: 7 },
     q5_self: 2,
     q6_functions: [0, 1, 2, 4],
     q8_agentic: 2,
     q9_gtm_integration: 2,
     q10_data_foundation: 2,
-    q11_barriers: [1, 2, 5],
     q12_roles: [0, 5],
     q13_programs: [0, 1, 2],
     q14_change: 2,
@@ -1494,9 +1396,7 @@ function getSampleResponse() {
     q18_buy_build: 3,
     q19_roi: 2,
     q20_impact_where: [1, 2, 4],
-    q21_business_outcomes: { 0: 1, 6: 2, 4: 3 },
     q22_results: 2,
-    q23_open: "AI-assisted campaign planning and content production.",
     participant_level: 0,
     participant_function: 4,
     participant_email: "drew@example.com",
