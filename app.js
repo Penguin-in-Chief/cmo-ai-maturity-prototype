@@ -487,11 +487,41 @@ const responseSource = isTestMode ? "github_pages_test" : "github_pages_webflow"
 
 const benchmark = window.realBenchmark || createFallbackBenchmark();
 const benchmarkCohort = benchmark.scores;
+let resizeTimer;
+
+function sendFrameHeight() {
+  const height = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    document.querySelector(".shell")?.scrollHeight || 0,
+  );
+
+  window.parent.postMessage(
+    {
+      type: "cmo-ai-maturity-height",
+      height: height + 24,
+    },
+    "*",
+  );
+}
+
+function scheduleFrameHeightUpdate() {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(sendFrameHeight, 80);
+}
+
+window.addEventListener("load", sendFrameHeight);
+window.addEventListener("resize", scheduleFrameHeightUpdate);
+
+if ("ResizeObserver" in window) {
+  new ResizeObserver(scheduleFrameHeightUpdate).observe(document.body);
+}
 
 document.querySelector("#startButton").addEventListener("click", () => {
   intro.classList.add("hidden");
   surveyForm.classList.remove("hidden");
   renderQuestion();
+  scheduleFrameHeightUpdate();
 });
 
 backButton.addEventListener("click", () => {
@@ -499,10 +529,12 @@ backButton.addEventListener("click", () => {
     surveyForm.classList.add("hidden");
     intro.classList.remove("hidden");
     updateProgress();
+    scheduleFrameHeightUpdate();
     return;
   }
   state.current -= 1;
   renderQuestion();
+  scheduleFrameHeightUpdate();
 });
 
 nextButton.addEventListener("click", () => {
@@ -514,6 +546,7 @@ nextButton.addEventListener("click", () => {
   }
   state.current += 1;
   renderQuestion();
+  scheduleFrameHeightUpdate();
 });
 
 reportRequestForm.addEventListener("submit", (event) => {
@@ -570,6 +603,7 @@ function renderQuestion() {
   backButton.textContent = state.current === 0 ? "Intro" : "Back";
   nextButton.textContent = state.current === flatQuestions.length - 1 ? "See results" : "Next";
   updateProgress();
+  scheduleFrameHeightUpdate();
 }
 
 function renderInput(question) {
@@ -1193,6 +1227,7 @@ function renderOptInConfirmation(request) {
   `;
   document.querySelector("#fullReport").classList.remove("hidden");
   document.querySelector("#fullReport").scrollIntoView({ behavior: "smooth", block: "start" });
+  scheduleFrameHeightUpdate();
 }
 
 function getSortedDimensions(score) {
@@ -1416,6 +1451,7 @@ window.cmoAiAlpha = {
 };
 
 updateProgress();
+sendFrameHeight();
 
 if (new URLSearchParams(window.location.search).has("sample")) {
   window.cmoAiAlpha.loadSampleResponse();
