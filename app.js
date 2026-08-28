@@ -479,6 +479,7 @@ const backButton = document.querySelector("#backButton");
 const nextButton = document.querySelector("#nextButton");
 const reportRequestForm = document.querySelector("#reportRequestForm");
 const copyReportButton = document.querySelector("#copyReportButton");
+const downloadPdfButton = document.querySelector("#downloadPdfButton");
 
 const SUPABASE_URL = "https://sesqavjfashncijbupqd.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l6MwbtnLzeNLFU3B4cjpJA_MxzW5nqK";
@@ -563,6 +564,10 @@ copyReportButton.addEventListener("click", async () => {
   } catch {
     setReportStatus("Copy failed in this browser. You can still select and copy the report text.");
   }
+});
+
+downloadPdfButton.addEventListener("click", () => {
+  window.print();
 });
 
 function scoredRadio(id, short, title, dimension, weight, options) {
@@ -1059,7 +1064,7 @@ async function handleReportRequest() {
   }
 
   if (!optBenchmarkReport && !optNewsletter && !optStarter) {
-    setReportStatus("Choose at least one option: benchmark report, newsletter, or Starter program interest.", true);
+    setReportStatus("Choose at least one option above before saving.", true);
     return;
   }
 
@@ -1087,7 +1092,7 @@ async function handleReportRequest() {
     setReportStatus("Preferences saved.");
   } catch (error) {
     console.warn("Supabase opt-in save failed", error);
-    setReportStatus("Preferences saved locally. Database save is not available yet.", true);
+    setReportStatus("Your choices were captured in this browser, but the database save did not complete. Please try again.", true);
   }
   renderOptInConfirmation(request);
 }
@@ -1204,7 +1209,7 @@ function renderOptInConfirmation(request) {
   const strongest = sortedDimensions.at(-1);
   const displayName = request.name || "there";
   const selected = [
-    request.optBenchmarkReport ? "Full benchmark report" : "",
+    request.optBenchmarkReport ? "Marketing AI Maturity Report" : "",
     request.optNewsletter ? "Huddle Up newsletter" : "",
     request.optStarter ? "Starter program interest" : "",
   ].filter(Boolean);
