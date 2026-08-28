@@ -44,9 +44,12 @@
             <h2 id="tierName">Explorer</h2>
             <p id="tierDescription"></p>
           </div>
-          <div class="score-ring">
-            <span id="overallScore">0</span>
-            <small>/100</small>
+          <div class="result-actions">
+            <div class="score-ring">
+              <span id="overallScore">0</span>
+              <small>/100</small>
+            </div>
+            <button class="secondary print-button" id="downloadPdfButton" type="button">Download PDF</button>
           </div>
         </div>
 
@@ -77,8 +80,9 @@
               <h3>Get the Benchmark Report and CMO Huddles Updates</h3>
               <p>
                 Your score is available immediately. Share your email if you want
-                the full benchmark report, the Huddle Up newsletter, or a follow-up
-                about the CMO Huddles Starter program.
+                the Marketing AI Maturity Report, the Huddle Up newsletter, or a
+                follow-up about the CMO Huddles Starter program. Choose at least
+                one option below before saving.
               </p>
             </div>
           </div>
@@ -86,7 +90,7 @@
             <div class="form-grid">
               <label>
                 <span>Name</span>
-                <input id="reportName" type="text" autocomplete="name" placeholder="Drew Neisser" />
+                <input id="reportName" type="text" autocomplete="name" placeholder="Your name" />
               </label>
               <label>
                 <span>Email</span>
@@ -99,7 +103,7 @@
             </div>
             <label class="consent-line">
               <input id="optBenchmarkReport" type="checkbox" />
-              <span>Send me the full CMO AI benchmark report when it is available.</span>
+              <span>Send me the Marketing AI Maturity Report when it is available.</span>
             </label>
             <label class="consent-line">
               <input id="optNewsletter" type="checkbox" />
@@ -115,7 +119,7 @@
             </label>
             <div class="actions inline-actions">
               <p id="reportRequestStatus" class="form-status"></p>
-              <button class="primary" type="submit">Save my preferences</button>
+              <button class="primary" type="submit">Save my choices</button>
             </div>
           </form>
         </article>
@@ -150,7 +154,7 @@
                 sharpen strategy, and move their teams forward.
               </p>
             </div>
-            <a class="primary link-button" href="https://cmohuddles.com/starter/" target="_blank" rel="noopener">
+            <a class="primary link-button" href="https://cmohuddles.com/for-active-b2b-marketing-leaders" target="_blank" rel="noopener">
               Learn About Starter
             </a>
           </div>
