@@ -934,6 +934,7 @@ function renderResults() {
   const benchmark = compareToBenchmark(score, benchmarkCohort);
   state.latestScore = score;
   state.latestBenchmark = benchmark;
+  intro.classList.add("hidden");
   surveyForm.classList.add("hidden");
   results.classList.remove("hidden");
   progressPill.textContent = "Results";
@@ -979,6 +980,9 @@ function renderResults() {
   `;
 
   renderBenchmarkSummary(score, benchmark);
+  renderAssessmentNarrative(score, benchmark);
+  renderStrengthGapSummary(score);
+  renderPovSummary(score);
   renderRecommendations(score);
   renderSnapshot();
   prefillReportRequest();
@@ -989,13 +993,21 @@ function renderResults() {
 function renderBenchmarkSummary(score, benchmark) {
   const segmentComparisons = getSegmentComparisons();
   const medianComparison = score.overall > benchmark.median ? "above" : score.overall < benchmark.median ? "below" : "at";
+  const percentileNote =
+    benchmark.percentile >= 75
+      ? "This places the organization ahead of most of the founding cohort."
+      : benchmark.percentile >= 50
+        ? "This places the organization in the upper half of the founding cohort."
+        : benchmark.percentile >= 25
+          ? "This places the organization below the cohort median, with a clear path to the next maturity band."
+          : "This places the organization in the earliest part of the maturity curve, where focused operating discipline can create fast gains.";
 
   document.querySelector("#benchmarkSummary").innerHTML = `
     <div class="benchmark-card">
       <span class="metric">${benchmark.percentile}<small>th</small></span>
       <div>
         <strong>Percentile vs ${window.realBenchmark ? "Founding Benchmark Cohort" : "benchmark preview"}</strong>
-        <p>Compared with ${benchmark.count} scoreable responses fielded by CMO Huddles and Benchmarkit in July-August 2026.</p>
+        <p>${percentileNote} Compared with ${benchmark.count} scoreable responses fielded by CMO Huddles and Benchmarkit in July-August 2026.</p>
       </div>
     </div>
     <div class="benchmark-grid">
@@ -1007,21 +1019,106 @@ function renderBenchmarkSummary(score, benchmark) {
   `;
 }
 
+function renderAssessmentNarrative(score, benchmark) {
+  const sorted = getSortedDimensions(score);
+  const weakest = sorted[0];
+  const strongest = sorted.at(-1);
+  const tierMeaning = getTierMeaning(score.tier.id);
+  const benchmarkPhrase =
+    score.overall >= benchmark.p75
+      ? "above the 75th percentile"
+      : score.overall >= benchmark.median
+        ? "above the cohort median"
+        : "below the cohort median";
+
+  document.querySelector("#assessmentNarrative").innerHTML = `
+    <p>
+      Your organization scored <strong>${score.overall}/100</strong>, placing it in the
+      <strong>${score.tier.label}</strong> tier and approximately the
+      <strong>${benchmark.percentile}th percentile</strong> of the Founding Benchmark Cohort.
+      That puts you ${benchmarkPhrase}.
+    </p>
+    <p>${tierMeaning}</p>
+    <p>
+      The strongest signal is <strong>${strongest[1].label}</strong> at
+      <strong>${strongest[1].normalized}/100</strong>. The biggest maturity constraint is
+      <strong>${weakest[1].label}</strong> at <strong>${weakest[1].normalized}/100</strong>.
+    </p>
+  `;
+}
+
+function renderStrengthGapSummary(score) {
+  const sorted = getSortedDimensions(score);
+  const weakest = sorted[0];
+  const secondWeakest = sorted[1];
+  const strongest = sorted.at(-1);
+
+  document.querySelector("#strengthGapSummary").innerHTML = `
+    <div class="summary-card strength">
+      <span>Strongest dimension</span>
+      <strong>${strongest[1].label}</strong>
+      <p>${strongest[1].normalized}/100. Use this area as the starting point for momentum and internal storytelling.</p>
+    </div>
+    <div class="summary-card gap">
+      <span>Primary maturity gap</span>
+      <strong>${weakest[1].label}</strong>
+      <p>${weakest[1].normalized}/100. Improving this area is likely to have the greatest impact on the next maturity move.</p>
+    </div>
+    <div class="summary-card">
+      <span>Secondary watch area</span>
+      <strong>${secondWeakest[1].label}</strong>
+      <p>${secondWeakest[1].normalized}/100. Keep this visible so progress does not stall after the first improvement push.</p>
+    </div>
+  `;
+}
+
+function renderPovSummary(score) {
+  const sorted = getSortedDimensions(score);
+  const weakestId = sorted[0][0];
+  const strongestId = sorted.at(-1)[0];
+  const gateNote = score.gatesPassed
+    ? "The three gating dimensions for transformational maturity are currently clear: workflow, governance, and measurement are each at or above 70."
+    : "To reach Transformer, workflow, governance, and measurement all need to reach 70 or higher. This gate keeps the model focused on durable operating maturity, not just enthusiasm or experimentation.";
+
+  document.querySelector("#povSummary").innerHTML = `
+    <p>${getPov(score, weakestId, strongestId)}</p>
+    <p>${gateNote}</p>
+    <p><strong>Influence move:</strong> ${getInfluenceGuidance(weakestId)}</p>
+  `;
+}
+
 function renderRecommendations(score) {
   const weakest = Object.entries(score.totals)
     .sort((a, b) => a[1].normalized - b[1].normalized)
     .slice(0, 3);
+  const priorities = getPriorityRecommendations(score);
 
-  document.querySelector("#recommendations").innerHTML = weakest
-    .map(
-      ([id, dimension]) => `
-        <div class="recommendation">
-          <strong>${dimension.label}</strong>
-          <p>${dimensions[id].recommendation}</p>
-        </div>
-      `,
-    )
-    .join("");
+  document.querySelector("#recommendations").innerHTML = `
+    <div class="priority-list">
+      ${priorities
+        .map(
+          (priority, index) => `
+            <div class="priority-item">
+              <span>${index + 1}</span>
+              <p>${priority}</p>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+    <div class="recommendation-grid">
+      ${weakest
+        .map(
+          ([id, dimension]) => `
+            <div class="recommendation">
+              <strong>${dimension.label}</strong>
+              <p>${dimensions[id].recommendation}</p>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
 }
 
 function renderSnapshot() {
@@ -1260,6 +1357,20 @@ function getPriorityRecommendations(score) {
   }
 
   return priorities;
+}
+
+function getTierMeaning(tierId) {
+  const meanings = {
+    explorer:
+      "Explorer organizations are usually proving where AI can help, but the work is still uneven. The priority is to turn scattered experimentation into visible ownership, shared use cases, and a few repeatable workflows.",
+    operator:
+      "Operator organizations have moved beyond casual experimentation. The next challenge is consistency: making AI part of repeatable work, clarifying decision rights, and measuring impact beyond individual productivity.",
+    orchestrator:
+      "Orchestrator organizations have many of the right ingredients in place. The next stage is to connect AI-enabled workflows to cross-functional GTM decisions, stronger governance, and clearer business impact.",
+    transformer:
+      "Transformer organizations are using AI as an operating advantage. The mandate is to keep improving workflow design, governance, and measurement while helping the broader GTM organization move at the same pace.",
+  };
+  return meanings[tierId];
 }
 
 function getPov(score, weakestId, strongestId) {
