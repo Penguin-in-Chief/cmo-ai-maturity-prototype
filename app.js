@@ -887,7 +887,7 @@ const tiers = {
   orchestrator: {
     id: "orchestrator",
     rank: 2,
-    label: "Orchestrator",
+    label: "Scaler",
     description:
       "Standardizing AI across teams and workflows, with clearer governance, enablement, and measurement.",
   },
@@ -1366,7 +1366,7 @@ function getTierMeaning(tierId) {
     operator:
       "Operator organizations have moved beyond casual experimentation. The next challenge is consistency: making AI part of repeatable work, clarifying decision rights, and measuring impact beyond individual productivity.",
     orchestrator:
-      "Orchestrator organizations have many of the right ingredients in place. The next stage is to connect AI-enabled workflows to cross-functional GTM decisions, stronger governance, and clearer business impact.",
+      "Scaler organizations have many of the right ingredients in place. The next stage is to connect AI-enabled workflows to cross-functional GTM decisions, stronger governance, and clearer business impact.",
     transformer:
       "Transformer organizations are using AI as an operating advantage. The mandate is to keep improving workflow design, governance, and measurement while helping the broader GTM organization move at the same pace.",
   };
