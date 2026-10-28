@@ -412,7 +412,7 @@ const tiers = {
   orchestrator: {
     id: "orchestrator",
     rank: 2,
-    label: "Orchestrator",
+    label: "Scaler",
     description:
       "Standardizing AI across teams and workflows, with clearer governance, enablement, and measurement.",
   },
